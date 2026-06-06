@@ -1,4 +1,16 @@
 const g = 9.8;
+const chartColors = {
+  blue: '#2d70b3',
+  blueFill: 'rgba(45, 112, 179, 0.12)',
+  red: '#c74440',
+  redFill: 'rgba(199, 68, 64, 0.12)',
+  text: '#202124',
+  muted: '#667085',
+  grid: 'rgba(102, 112, 133, 0.18)'
+};
+
+Chart.defaults.font.family = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+Chart.defaults.color = chartColors.muted;
 
 function getArea(radius) {
   return Math.PI * radius * radius;
@@ -99,32 +111,26 @@ function buildLineConfig(labels, datasets, title) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: { duration: 320 },
+      interaction: { intersect: false, mode: 'index' },
+      elements: { point: { radius: 0, hoverRadius: 4 }, line: { borderWidth: 2.5 } },
       plugins: {
-        title: { display: true, text: title, color: '#f8fafc', font: { size: 16 } },
-        legend: { labels: { color: '#cbd5e1' } }
+        title: { display: false, text: title },
+        legend: {
+          align: 'start',
+          labels: { color: chartColors.muted, boxWidth: 28, boxHeight: 3, usePointStyle: true }
+        },
+        tooltip: {
+          backgroundColor: '#202124',
+          padding: 10,
+          titleColor: '#ffffff',
+          bodyColor: '#ffffff',
+          displayColors: true
+        }
       },
       scales: {
-        x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(148,163,184,0.12)' } },
-        y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(148,163,184,0.12)' } }
-      }
-    }
-  };
-}
-
-function buildXYConfig(labels, datasets, title) {
-  return {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        title: { display: true, text: title, color: '#f8fafc', font: { size: 16 } },
-        legend: { labels: { color: '#cbd5e1' } }
-      },
-      scales: {
-        x: { title: { display: true, text: 'Horizontal distance (m)', color: '#cbd5e1' }, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(148,163,184,0.12)' } },
-        y: { title: { display: true, text: 'Vertical height (m)', color: '#cbd5e1' }, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(148,163,184,0.12)' }, reverse: true }
+        x: { ticks: { color: chartColors.muted, maxTicksLimit: 8 }, grid: { color: chartColors.grid } },
+        y: { ticks: { color: chartColors.muted, maxTicksLimit: 7 }, grid: { color: chartColors.grid } }
       }
     }
   };
@@ -132,6 +138,24 @@ function buildXYConfig(labels, datasets, title) {
 
 function getInputValue(id) {
   return parseFloat(document.getElementById(id).value);
+}
+
+function formatNumber(value, digits = 2) {
+  if (!Number.isFinite(value)) {
+    return '0.00';
+  }
+
+  return value.toFixed(digits);
+}
+
+function lastValue(values) {
+  return values[values.length - 1];
+}
+
+function setMetrics(id, metrics) {
+  document.getElementById(id).innerHTML = metrics
+    .map(({ label, value }) => `<div class="metric"><span>${label}</span><strong>${value}</strong></div>`)
+    .join('');
 }
 
 function renderFall() {
@@ -151,15 +175,15 @@ function renderFall() {
     {
       label: 'No Air Resistance',
       data: result.yNoDrag,
-      borderColor: '#38bdf8',
-      backgroundColor: 'rgba(56, 189, 248, 0.2)',
+      borderColor: chartColors.blue,
+      backgroundColor: chartColors.blueFill,
       tension: 0.25
     },
     {
       label: 'With Air Resistance',
       data: result.yDrag,
-      borderColor: '#a855f7',
-      backgroundColor: 'rgba(168, 85, 247, 0.2)',
+      borderColor: chartColors.red,
+      backgroundColor: chartColors.redFill,
       tension: 0.25
     }
   ];
@@ -170,15 +194,15 @@ function renderFall() {
     {
       label: 'No Air Resistance',
       data: result.vNoDrag,
-      borderColor: '#38bdf8',
-      backgroundColor: 'rgba(56, 189, 248, 0.2)',
+      borderColor: chartColors.blue,
+      backgroundColor: chartColors.blueFill,
       tension: 0.25
     },
     {
       label: 'With Air Resistance',
       data: result.vDrag,
-      borderColor: '#a855f7',
-      backgroundColor: 'rgba(168, 85, 247, 0.2)',
+      borderColor: chartColors.red,
+      backgroundColor: chartColors.redFill,
       tension: 0.25
     }
   ];
@@ -188,19 +212,26 @@ function renderFall() {
     {
       label: 'No Air Resistance',
       data: result.aNoDrag,
-      borderColor: '#38bdf8',
-      backgroundColor: 'rgba(56, 189, 248, 0.2)',
+      borderColor: chartColors.blue,
+      backgroundColor: chartColors.blueFill,
       tension: 0.25
     },
     {
       label: 'With Air Resistance',
       data: result.aDrag,
-      borderColor: '#a855f7',
-      backgroundColor: 'rgba(168, 85, 247, 0.2)',
+      borderColor: chartColors.red,
+      backgroundColor: chartColors.redFill,
       tension: 0.25
     }
   ];
   updateChart(chartA, buildLineConfig(labels, aDatasets, 'Acceleration vs Time'));
+
+  setMetrics('fallMetrics', [
+    { label: 'No drag y', value: `${formatNumber(lastValue(result.yNoDrag))} m` },
+    { label: 'Drag y', value: `${formatNumber(lastValue(result.yDrag))} m` },
+    { label: 'No drag v', value: `${formatNumber(lastValue(result.vNoDrag))} m/s` },
+    { label: 'Drag v', value: `${formatNumber(lastValue(result.vDrag))} m/s` }
+  ]);
 }
 
 function renderProjectile() {
@@ -215,15 +246,13 @@ function renderProjectile() {
   };
 
   const result = simulateProjectile(payload);
-  const maxLength = Math.max(result.xNoDrag.length, result.xDrag.length);
-  const labels = Array.from({ length: maxLength }, (_, i) => i + 1);
 
   const datasets = [
     {
       label: 'No Air Resistance',
       data: result.xNoDrag.map((x, index) => ({ x, y: result.yNoDrag[index] })),
-      borderColor: '#38bdf8',
-      backgroundColor: 'rgba(56, 189, 248, 0.2)',
+      borderColor: chartColors.blue,
+      backgroundColor: chartColors.blueFill,
       fill: false,
       tension: 0.25,
       showLine: true
@@ -231,8 +260,8 @@ function renderProjectile() {
     {
       label: 'With Air Resistance',
       data: result.xDrag.map((x, index) => ({ x, y: result.yDrag[index] })),
-      borderColor: '#a855f7',
-      backgroundColor: 'rgba(168, 85, 247, 0.2)',
+      borderColor: chartColors.red,
+      backgroundColor: chartColors.redFill,
       fill: false,
       tension: 0.25,
       showLine: true
@@ -245,16 +274,43 @@ function renderProjectile() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: { duration: 320 },
+      interaction: { intersect: false, mode: 'nearest' },
+      elements: { point: { radius: 0, hoverRadius: 4 }, line: { borderWidth: 2.5 } },
       plugins: {
-        title: { display: true, text: 'Projectile Path Comparison', color: '#f8fafc', font: { size: 16 } },
-        legend: { labels: { color: '#cbd5e1' } }
+        title: { display: false, text: 'Projectile Path Comparison' },
+        legend: {
+          align: 'start',
+          labels: { color: chartColors.muted, boxWidth: 28, boxHeight: 3, usePointStyle: true }
+        },
+        tooltip: {
+          backgroundColor: '#202124',
+          padding: 10,
+          titleColor: '#ffffff',
+          bodyColor: '#ffffff'
+        }
       },
       scales: {
-        x: { title: { display: true, text: 'Horizontal distance (m)', color: '#cbd5e1' }, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(148,163,184,0.12)' } },
-        y: { title: { display: true, text: 'Vertical height (m)', color: '#cbd5e1' }, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(148,163,184,0.12)' } }
+        x: {
+          title: { display: true, text: 'Horizontal distance (m)', color: chartColors.muted },
+          ticks: { color: chartColors.muted, maxTicksLimit: 9 },
+          grid: { color: chartColors.grid }
+        },
+        y: {
+          title: { display: true, text: 'Vertical height (m)', color: chartColors.muted },
+          ticks: { color: chartColors.muted, maxTicksLimit: 7 },
+          grid: { color: chartColors.grid }
+        }
       }
     }
   });
+
+  setMetrics('projectileMetrics', [
+    { label: 'No drag range', value: `${formatNumber(Math.max(...result.xNoDrag))} m` },
+    { label: 'Drag range', value: `${formatNumber(Math.max(...result.xDrag))} m` },
+    { label: 'No drag apex', value: `${formatNumber(Math.max(...result.yNoDrag))} m` },
+    { label: 'Drag apex', value: `${formatNumber(Math.max(...result.yDrag))} m` }
+  ]);
 }
 
 function updateChart(chart, config) {

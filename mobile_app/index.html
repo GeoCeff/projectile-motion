@@ -3,55 +3,108 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Projectile Motion Mobile App</title>
+  <title>Projectile Motion Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <header>
-    <h1>Projectile Motion</h1>
-    <p>Compare motion with and without air resistance for falling objects and launched projectiles.</p>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Physics 4.5 Interactive Lab</p>
+      <h1>Projectile Motion</h1>
+    </div>
+    <div class="legend-strip" aria-label="Chart legend">
+      <span><i class="series-blue"></i>No air resistance</span>
+      <span><i class="series-red"></i>With air resistance</span>
+    </div>
   </header>
 
-  <main>
-    <section class="card">
-      <h2>1D Fall: Vertical Motion</h2>
-      <div class="form-grid">
-        <label>Mass (kg)<input id="mass" type="number" value="0.145" step="0.001" min="0.001" /></label>
-        <label>Radius (m)<input id="radius" type="number" value="0.0366" step="0.001" min="0.001" /></label>
-        <label>Drag coeff. C<input id="dragCoeff" type="number" value="0.5" step="0.1" min="0" /></label>
-        <label>Air density (kg/m³)<input id="rho" type="number" value="1.2" step="0.1" min="0" /></label>
-        <label>Time max (s)<input id="tMax" type="number" value="5" step="0.5" min="0.5" /></label>
-        <label>Time step (s)<input id="dt" type="number" value="0.01" step="0.005" min="0.001" /></label>
-      </div>
-      <button id="runFall">Run Vertical Motion</button>
-      <div class="chart-grid">
-        <div><canvas id="chartY"></canvas></div>
-        <div><canvas id="chartV"></canvas></div>
-        <div><canvas id="chartA"></canvas></div>
-      </div>
-    </section>
+  <main class="workspace">
+    <aside class="control-panel" aria-label="Simulation controls">
+      <section class="control-section">
+        <div class="section-heading">
+          <span class="section-index">1</span>
+          <div>
+            <h2>Vertical Fall</h2>
+            <p>Compare height, velocity, and acceleration over time.</p>
+          </div>
+        </div>
 
-    <section class="card">
-      <h2>2D Projectile Motion</h2>
-      <div class="form-grid">
-        <label>Initial speed (m/s)<input id="v0" type="number" value="20" step="1" min="0" /></label>
-        <label>Launch angle (°)<input id="angle" type="number" value="45" step="1" min="0" max="90" /></label>
-        <label>Mass (kg)<input id="mass2" type="number" value="0.145" step="0.001" min="0.001" /></label>
-        <label>Drag coeff. C<input id="dragCoeff2" type="number" value="0.5" step="0.1" min="0" /></label>
-        <label>Air density (kg/m³)<input id="rho2" type="number" value="1.2" step="0.1" min="0" /></label>
-        <label>Time step (s)<input id="dt2" type="number" value="0.01" step="0.005" min="0.001" /></label>
-      </div>
-      <button id="runProjectile">Run Projectile Motion</button>
-      <div class="chart-grid projectile-chart">
-        <div><canvas id="chartXY"></canvas></div>
+        <div class="input-grid">
+          <label>Mass <span>kg</span><input id="mass" type="number" value="0.145" step="0.001" min="0.001" /></label>
+          <label>Radius <span>m</span><input id="radius" type="number" value="0.0366" step="0.001" min="0.001" /></label>
+          <label>Drag coefficient <span>C</span><input id="dragCoeff" type="number" value="0.5" step="0.1" min="0" /></label>
+          <label>Air density <span>kg/m^3</span><input id="rho" type="number" value="1.2" step="0.1" min="0" /></label>
+          <label>Time max <span>s</span><input id="tMax" type="number" value="5" step="0.5" min="0.5" /></label>
+          <label>Time step <span>s</span><input id="dt" type="number" value="0.01" step="0.005" min="0.001" /></label>
+        </div>
+
+        <button id="runFall" type="button">Run Vertical Motion</button>
+        <div class="metric-row" id="fallMetrics" aria-live="polite"></div>
+      </section>
+
+      <section class="control-section">
+        <div class="section-heading">
+          <span class="section-index">2</span>
+          <div>
+            <h2>Projectile Path</h2>
+            <p>Launch a projectile and compare the resulting trajectories.</p>
+          </div>
+        </div>
+
+        <div class="input-grid">
+          <label>Initial speed <span>m/s</span><input id="v0" type="number" value="20" step="1" min="0" /></label>
+          <label>Launch angle <span>deg</span><input id="angle" type="number" value="45" step="1" min="0" max="90" /></label>
+          <label>Mass <span>kg</span><input id="mass2" type="number" value="0.145" step="0.001" min="0.001" /></label>
+          <label>Drag coefficient <span>C</span><input id="dragCoeff2" type="number" value="0.5" step="0.1" min="0" /></label>
+          <label>Air density <span>kg/m^3</span><input id="rho2" type="number" value="1.2" step="0.1" min="0" /></label>
+          <label>Time step <span>s</span><input id="dt2" type="number" value="0.01" step="0.005" min="0.001" /></label>
+        </div>
+
+        <button id="runProjectile" type="button">Run Projectile Motion</button>
+        <div class="metric-row" id="projectileMetrics" aria-live="polite"></div>
+      </section>
+    </aside>
+
+    <section class="graph-panel" aria-label="Simulation graphs">
+      <div class="graph-grid">
+        <article class="graph-card">
+          <div class="graph-title">
+            <h3>Position vs Time</h3>
+            <span>y(t)</span>
+          </div>
+          <canvas id="chartY"></canvas>
+        </article>
+
+        <article class="graph-card">
+          <div class="graph-title">
+            <h3>Velocity vs Time</h3>
+            <span>v(t)</span>
+          </div>
+          <canvas id="chartV"></canvas>
+        </article>
+
+        <article class="graph-card">
+          <div class="graph-title">
+            <h3>Acceleration vs Time</h3>
+            <span>a(t)</span>
+          </div>
+          <canvas id="chartA"></canvas>
+        </article>
+
+        <article class="graph-card graph-card-wide">
+          <div class="graph-title">
+            <h3>Projectile Path Comparison</h3>
+            <span>x-y plane</span>
+          </div>
+          <canvas id="chartXY"></canvas>
+        </article>
       </div>
     </section>
   </main>
-
-  <footer>
-    <p>Built from Activity 4.3 projectile motion code.</p>
-  </footer>
 
   <script src="app.js"></script>
 </body>
