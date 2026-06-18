@@ -1,20 +1,30 @@
-# Projectile Motion Mobile App
+# Mobile App Notes
 
-A simple mobile-friendly web app that converts the Activity 4.3 projectile motion Python examples into interactive graphs.
+This folder contains the static Projectile Motion Lab web app.
 
 ## Files
 
-- `index.html` — app UI
-- `style.css` — responsive mobile-style layout
-- `app.js` — simulation logic for vertical fall and 2D projectile motion
+- `index.html` defines the controls, graph panels, presets, and reference notes.
+- `style.css` provides the graphing-calculator inspired responsive layout.
+- `app.js` contains the physics simulation, Chart.js configuration, validation, metrics, presets, reset behavior, and CSV export.
 
-## How to use
+## Features
 
-1. Open `mobile_app/index.html` in a browser.
-2. Adjust the inputs for drag, mass, velocity, and time steps.
-3. Tap `Run Vertical Motion` or `Run Projectile Motion` to update the charts.
+- Vertical fall comparison with position, velocity, and acceleration graphs.
+- Projectile trajectory comparison with ideal and drag-aware paths.
+- Object presets for quick classroom experiments.
+- Separate values for vertical fall and projectile launch parameters.
+- Live auto-update mode with manual run buttons.
+- Input validation for invalid or expensive simulation settings.
+- CSV export for further analysis in spreadsheets.
 
-## Notes
+## Local Use
 
-- The app compares motion without air resistance and with drag proportional to speed.
-- `Chart.js` is loaded via CDN, so no local dependencies are required.
+Open `index.html` directly in a browser. The only external dependency is Chart.js, which is loaded from a CDN.
+
+## Model Limitations
+
+- Gravity is fixed at `9.8 m/s^2`.
+- Drag is modeled as quadratic drag.
+- Wind, lift, spin, buoyancy, and changing air density are not included.
+- Numerical integration accuracy depends on the chosen time step.

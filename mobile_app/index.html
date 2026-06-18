@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="description"
+    content="Interactive projectile motion simulator comparing ideal motion and quadratic air resistance."
+  />
   <title>Projectile Motion Lab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,10 +19,15 @@
     <div>
       <p class="eyebrow">Physics 4.5 Interactive Lab</p>
       <h1>Projectile Motion</h1>
+      <p class="subtitle">Compare ideal motion against quadratic drag with live graphs, metrics, and exportable data.</p>
     </div>
-    <div class="legend-strip" aria-label="Chart legend">
-      <span><i class="series-blue"></i>No air resistance</span>
-      <span><i class="series-red"></i>With air resistance</span>
+    <div class="header-actions">
+      <label class="toggle">
+        <input id="autoRun" type="checkbox" checked />
+        <span>Auto update</span>
+      </label>
+      <button id="resetAll" class="secondary-button" type="button">Reset</button>
+      <button id="exportCsv" type="button">Export CSV</button>
     </div>
   </header>
 
@@ -28,15 +37,32 @@
         <div class="section-heading">
           <span class="section-index">1</span>
           <div>
+            <h2>Object Presets</h2>
+            <p>Start with common classroom examples, then adjust any value.</p>
+          </div>
+        </div>
+
+        <div class="preset-grid" aria-label="Object presets">
+          <button class="preset-button" type="button" data-preset="baseball">Baseball</button>
+          <button class="preset-button" type="button" data-preset="tennis">Tennis Ball</button>
+          <button class="preset-button" type="button" data-preset="pingpong">Ping Pong</button>
+          <button class="preset-button" type="button" data-preset="steel">Steel Ball</button>
+        </div>
+      </section>
+
+      <section class="control-section">
+        <div class="section-heading">
+          <span class="section-index">2</span>
+          <div>
             <h2>Vertical Fall</h2>
-            <p>Compare height, velocity, and acceleration over time.</p>
+            <p>Compare position, velocity, and acceleration over time.</p>
           </div>
         </div>
 
         <div class="input-grid">
           <label>Mass <span>kg</span><input id="mass" type="number" value="0.145" step="0.001" min="0.001" /></label>
-          <label>Radius <span>m</span><input id="radius" type="number" value="0.0366" step="0.001" min="0.001" /></label>
-          <label>Drag coefficient <span>C</span><input id="dragCoeff" type="number" value="0.5" step="0.1" min="0" /></label>
+          <label>Radius <span>m</span><input id="radius" type="number" value="0.0366" step="0.0001" min="0.001" /></label>
+          <label>Drag coefficient <span>C</span><input id="dragCoeff" type="number" value="0.5" step="0.01" min="0" /></label>
           <label>Air density <span>kg/m^3</span><input id="rho" type="number" value="1.2" step="0.1" min="0" /></label>
           <label>Time max <span>s</span><input id="tMax" type="number" value="5" step="0.5" min="0.5" /></label>
           <label>Time step <span>s</span><input id="dt" type="number" value="0.01" step="0.005" min="0.001" /></label>
@@ -48,10 +74,10 @@
 
       <section class="control-section">
         <div class="section-heading">
-          <span class="section-index">2</span>
+          <span class="section-index">3</span>
           <div>
-            <h2>Projectile Path</h2>
-            <p>Launch a projectile and compare the resulting trajectories.</p>
+            <h2>Projectile Launch</h2>
+            <p>Launch an object and compare the resulting trajectories.</p>
           </div>
         </div>
 
@@ -59,7 +85,8 @@
           <label>Initial speed <span>m/s</span><input id="v0" type="number" value="20" step="1" min="0" /></label>
           <label>Launch angle <span>deg</span><input id="angle" type="number" value="45" step="1" min="0" max="90" /></label>
           <label>Mass <span>kg</span><input id="mass2" type="number" value="0.145" step="0.001" min="0.001" /></label>
-          <label>Drag coefficient <span>C</span><input id="dragCoeff2" type="number" value="0.5" step="0.1" min="0" /></label>
+          <label>Radius <span>m</span><input id="radius2" type="number" value="0.0366" step="0.0001" min="0.001" /></label>
+          <label>Drag coefficient <span>C</span><input id="dragCoeff2" type="number" value="0.5" step="0.01" min="0" /></label>
           <label>Air density <span>kg/m^3</span><input id="rho2" type="number" value="1.2" step="0.1" min="0" /></label>
           <label>Time step <span>s</span><input id="dt2" type="number" value="0.01" step="0.005" min="0.001" /></label>
         </div>
@@ -67,9 +94,35 @@
         <button id="runProjectile" type="button">Run Projectile Motion</button>
         <div class="metric-row" id="projectileMetrics" aria-live="polite"></div>
       </section>
+
+      <section class="control-section reference-section">
+        <div class="section-heading">
+          <span class="section-index">4</span>
+          <div>
+            <h2>Model Notes</h2>
+            <p>Quadratic drag opposes motion and depends on cross-sectional area.</p>
+          </div>
+        </div>
+        <dl class="equation-list">
+          <div>
+            <dt>Drag force</dt>
+            <dd>F_d = 0.5 C rho A v^2</dd>
+          </div>
+          <div>
+            <dt>Cross-section</dt>
+            <dd>A = pi r^2</dd>
+          </div>
+          <div>
+            <dt>Gravity</dt>
+            <dd>g = 9.8 m/s^2 downward</dd>
+          </div>
+        </dl>
+      </section>
     </aside>
 
     <section class="graph-panel" aria-label="Simulation graphs">
+      <div id="statusMessage" class="status-message" role="status">Ready. Adjust values or choose a preset.</div>
+
       <div class="graph-grid">
         <article class="graph-card">
           <div class="graph-title">
