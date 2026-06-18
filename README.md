@@ -7,6 +7,9 @@ An interactive browser-based physics lab for exploring projectile motion with an
 - Simulates vertical fall with and without quadratic drag.
 - Simulates 2D projectile launch with and without air resistance.
 - Charts position, velocity, acceleration, trajectory, and mechanical energy.
+- Animates ideal and drag-aware projectile positions on the trajectory graph.
+- Provides Desmos-style sliders for launch speed and launch angle.
+- Shows a compact comparison table for range, apex, flight time, and ending energy.
 - Shows summary metrics such as range, apex, range loss, flight time, drag velocity, and terminal speed.
 - Includes presets for common objects: baseball, tennis ball, ping pong ball, and steel ball.
 - Includes environment presets for Earth, Moon, Mars, and vacuum conditions.
@@ -37,7 +40,8 @@ mobile_app/index.html
 2. Choose an object preset or enter your own values.
 3. Adjust mass, radius, drag coefficient, air density, gravity, speed, launch angle, and time step.
 4. Use auto update for live recalculation, or turn it off and press the run buttons manually.
-5. Use `Share Link` to copy the current setup, `Export CSV` to save generated data, or `PNG` to download individual charts.
+5. Scrub or play the trajectory animation to compare the two models over time.
+6. Use `Share Link` to copy the current setup, `Export CSV` to save generated data, or `PNG` to download individual charts.
 
 ## Physics Model
 

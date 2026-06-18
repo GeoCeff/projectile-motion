@@ -21,6 +21,9 @@ This folder contains the static Projectile Motion Lab web app.
 - Input validation for invalid or expensive simulation settings.
 - Shareable links that encode the current simulation values in the URL hash.
 - Mechanical energy chart for comparing ideal conservation against drag losses.
+- Projectile animation scrubber with live ideal and drag position markers.
+- Launch speed and angle sliders for faster exploration.
+- Comparison table for range, apex, flight time, and ending energy.
 - CSV export for further analysis in spreadsheets.
 - Per-chart PNG export for reports, slides, and lab writeups.
 

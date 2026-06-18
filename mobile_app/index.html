@@ -64,9 +64,35 @@
         </div>
       </section>
 
-      <section class="control-section">
+      <section class="control-section expression-section">
         <div class="section-heading">
           <span class="section-index">2</span>
+          <div>
+            <h2>Expressions</h2>
+            <p>Visible model equations and color-coded graph series.</p>
+          </div>
+        </div>
+        <div class="expression-list">
+          <div class="expression-row">
+            <i class="series-blue"></i>
+            <div>
+              <strong>Ideal</strong>
+              <span>x = v0 cos(theta)t, y = v0 sin(theta)t - 0.5gt^2</span>
+            </div>
+          </div>
+          <div class="expression-row">
+            <i class="series-red"></i>
+            <div>
+              <strong>With drag</strong>
+              <span>F_d = 0.5 C rho A v^2 opposite motion</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="control-section">
+        <div class="section-heading">
+          <span class="section-index">3</span>
           <div>
             <h2>Vertical Fall</h2>
             <p>Compare position, velocity, and acceleration over time.</p>
@@ -89,7 +115,7 @@
 
       <section class="control-section">
         <div class="section-heading">
-          <span class="section-index">3</span>
+          <span class="section-index">4</span>
           <div>
             <h2>Projectile Launch</h2>
             <p>Launch an object and compare the resulting trajectories.</p>
@@ -107,13 +133,18 @@
           <label>Time step <span>s</span><input id="dt2" type="number" value="0.01" step="0.005" min="0.001" /></label>
         </div>
 
+        <div class="slider-stack" aria-label="Projectile sliders">
+          <label class="slider-field">Initial speed <span id="v0SliderValue">20 m/s</span><input id="v0Slider" type="range" min="0" max="80" step="1" value="20" /></label>
+          <label class="slider-field">Launch angle <span id="angleSliderValue">45 deg</span><input id="angleSlider" type="range" min="0" max="90" step="1" value="45" /></label>
+        </div>
+
         <button id="runProjectile" type="button">Run Projectile Motion</button>
         <div class="metric-row" id="projectileMetrics" aria-live="polite"></div>
       </section>
 
       <section class="control-section reference-section">
         <div class="section-heading">
-          <span class="section-index">4</span>
+          <span class="section-index">5</span>
           <div>
             <h2>Model Notes</h2>
             <p>Quadratic drag opposes motion and depends on cross-sectional area.</p>
@@ -142,6 +173,27 @@
 
     <section class="graph-panel" aria-label="Simulation graphs">
       <div id="statusMessage" class="status-message" role="status">Ready. Adjust values or choose a preset.</div>
+
+      <div class="analysis-panel">
+        <div class="animation-controls">
+          <button id="playTrajectory" class="secondary-button" type="button">Play</button>
+          <label>Time <span id="timeReadout">0.00 s</span><input id="timeSlider" type="range" min="0" max="1" step="0.01" value="0" /></label>
+        </div>
+        <div class="comparison-table-wrap">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Range</th>
+                <th>Apex</th>
+                <th>Flight</th>
+                <th>Energy End</th>
+              </tr>
+            </thead>
+            <tbody id="comparisonTable"></tbody>
+          </table>
+        </div>
+      </div>
 
       <div class="graph-grid">
         <article class="graph-card">

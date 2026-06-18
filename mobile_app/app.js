@@ -45,6 +45,7 @@ const environments = {
 const inputIds = Object.keys(defaultValues);
 const lastResults = { fall: null, projectile: null };
 const chartsByCanvasId = {};
+const animationState = { playing: false, timer: null, time: 0 };
 let autoRunTimer = null;
 
 Chart.defaults.font.family = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
@@ -241,6 +242,18 @@ function makeDataset(label, data, color, fillColor) {
   };
 }
 
+function makeMarkerDataset(label, color) {
+  return {
+    label,
+    data: [],
+    borderColor: color,
+    backgroundColor: color,
+    pointRadius: 6,
+    pointHoverRadius: 7,
+    showLine: false
+  };
+}
+
 function getInput(id) {
   return document.getElementById(id);
 }
@@ -304,6 +317,19 @@ function formatNumber(value, digits = 2) {
   return value.toFixed(digits);
 }
 
+function getPointAtTime(times, xs, ys, time) {
+  if (!times.length) {
+    return { x: 0, y: 0 };
+  }
+
+  let index = times.findIndex((value) => value >= time);
+  if (index === -1) {
+    index = times.length - 1;
+  }
+
+  return { x: xs[index], y: ys[index] };
+}
+
 function lastValue(values) {
   return values[values.length - 1];
 }
@@ -334,6 +360,11 @@ function updateChart(chart, config) {
   chart.config.data = config.data;
   chart.config.options = config.options;
   chart.update();
+}
+
+function updateSliderLabels() {
+  document.getElementById('v0SliderValue').textContent = `${formatNumber(getInputValue('v0'), 0)} m/s`;
+  document.getElementById('angleSliderValue').textContent = `${formatNumber(getInputValue('angle'), 0)} deg`;
 }
 
 function slugify(text) {
@@ -419,7 +450,9 @@ function renderProjectile(values) {
         result.xDrag.map((x, index) => ({ x, y: result.yDrag[index] })),
         chartColors.red,
         chartColors.redFill
-      )
+      ),
+      makeMarkerDataset('Ideal position', chartColors.blue),
+      makeMarkerDataset('Drag position', chartColors.red)
     ])
   );
 
@@ -434,6 +467,15 @@ function renderProjectile(values) {
   );
 
   lastResults.projectile = result;
+  updateAnimationControls(result);
+  updateAnimationFrame(animationState.time);
+  updateComparisonTable({
+    rangeNoDrag,
+    rangeDrag,
+    apexNoDrag,
+    apexDrag,
+    result
+  });
 
   setMetrics('projectileMetrics', [
     { label: 'No drag range', value: `${formatNumber(rangeNoDrag)} m` },
@@ -443,6 +485,46 @@ function renderProjectile(values) {
     { label: 'No drag apex', value: `${formatNumber(apexNoDrag)} m` },
     { label: 'Drag apex', value: `${formatNumber(apexDrag)} m` }
   ]);
+}
+
+function updateAnimationControls(result) {
+  const maxTime = Math.max(lastValue(result.tNoDrag), lastValue(result.tDrag));
+  const timeSlider = document.getElementById('timeSlider');
+  timeSlider.max = formatNumber(maxTime, 2);
+  timeSlider.step = formatNumber(Math.max(getInputValue('dt2'), 0.01), 3);
+
+  if (animationState.time > maxTime) {
+    animationState.time = 0;
+    timeSlider.value = 0;
+  }
+}
+
+function updateAnimationFrame(time) {
+  if (!lastResults.projectile || !chartXY.data.datasets[2] || !chartXY.data.datasets[3]) {
+    return;
+  }
+
+  const result = lastResults.projectile;
+  animationState.time = Math.min(time, Math.max(lastValue(result.tNoDrag), lastValue(result.tDrag)));
+  document.getElementById('timeSlider').value = animationState.time;
+  document.getElementById('timeReadout').textContent = `${formatNumber(animationState.time, 2)} s`;
+
+  chartXY.data.datasets[2].data = [getPointAtTime(result.tNoDrag, result.xNoDrag, result.yNoDrag, animationState.time)];
+  chartXY.data.datasets[3].data = [getPointAtTime(result.tDrag, result.xDrag, result.yDrag, animationState.time)];
+  chartXY.update('none');
+}
+
+function updateComparisonTable({ rangeNoDrag, rangeDrag, apexNoDrag, apexDrag, result }) {
+  const idealEnergyEnd = lastValue(result.energyNoDrag);
+  const dragEnergyEnd = lastValue(result.energyDrag);
+  const rows = [
+    ['Ideal', `${formatNumber(rangeNoDrag)} m`, `${formatNumber(apexNoDrag)} m`, `${formatNumber(lastValue(result.tNoDrag))} s`, `${formatNumber(idealEnergyEnd)} J`],
+    ['With drag', `${formatNumber(rangeDrag)} m`, `${formatNumber(apexDrag)} m`, `${formatNumber(lastValue(result.tDrag))} s`, `${formatNumber(dragEnergyEnd)} J`]
+  ];
+
+  document.getElementById('comparisonTable').innerHTML = rows
+    .map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join('')}</tr>`)
+    .join('');
 }
 
 function renderAll() {
@@ -460,6 +542,8 @@ function renderAll() {
 }
 
 function scheduleAutoRun() {
+  stopAnimation();
+
   if (!document.getElementById('autoRun').checked) {
     setStatus('Auto update is paused. Press a run button to refresh the graphs.', 'warning');
     return;
@@ -469,10 +553,56 @@ function scheduleAutoRun() {
   autoRunTimer = window.setTimeout(renderAll, 180);
 }
 
+function stopAnimation() {
+  animationState.playing = false;
+  window.clearInterval(animationState.timer);
+  document.getElementById('playTrajectory').textContent = 'Play';
+}
+
+function toggleAnimation() {
+  if (!lastResults.projectile) {
+    return;
+  }
+
+  if (animationState.playing) {
+    stopAnimation();
+    return;
+  }
+
+  animationState.playing = true;
+  document.getElementById('playTrajectory').textContent = 'Pause';
+  animationState.timer = window.setInterval(() => {
+    const result = lastResults.projectile;
+    const maxTime = Math.max(lastValue(result.tNoDrag), lastValue(result.tDrag));
+    const nextTime = animationState.time + Math.max(getInputValue('dt2') * 6, 0.03);
+
+    if (nextTime >= maxTime) {
+      updateAnimationFrame(maxTime);
+      stopAnimation();
+      return;
+    }
+
+    updateAnimationFrame(nextTime);
+  }, 80);
+}
+
 function setValues(values) {
   Object.entries(values).forEach(([id, value]) => {
     getInput(id).value = value;
   });
+  syncSlidersFromInputs();
+}
+
+function syncSlidersFromInputs() {
+  getInput('v0Slider').value = getInputValue('v0');
+  getInput('angleSlider').value = getInputValue('angle');
+  updateSliderLabels();
+}
+
+function syncInputFromSlider(sliderId, inputId) {
+  getInput(inputId).value = getInput(sliderId).value;
+  updateSliderLabels();
+  scheduleAutoRun();
 }
 
 function applyPreset(name) {
@@ -675,6 +805,13 @@ document.getElementById('resetAll').addEventListener('click', resetAll);
 document.getElementById('exportCsv').addEventListener('click', exportCsv);
 document.getElementById('copyShareLink').addEventListener('click', copyShareLink);
 document.getElementById('autoRun').addEventListener('change', scheduleAutoRun);
+document.getElementById('playTrajectory').addEventListener('click', toggleAnimation);
+document.getElementById('timeSlider').addEventListener('input', (event) => {
+  stopAnimation();
+  updateAnimationFrame(parseFloat(event.target.value));
+});
+document.getElementById('v0Slider').addEventListener('input', () => syncInputFromSlider('v0Slider', 'v0'));
+document.getElementById('angleSlider').addEventListener('input', () => syncInputFromSlider('angleSlider', 'angle'));
 
 document.querySelectorAll('.preset-button').forEach((button) => {
   if (button.dataset.preset) {
@@ -691,8 +828,14 @@ document.querySelectorAll('[data-chart]').forEach((button) => {
 });
 
 inputIds.forEach((id) => {
-  getInput(id).addEventListener('input', scheduleAutoRun);
+  getInput(id).addEventListener('input', () => {
+    if (id === 'v0' || id === 'angle') {
+      syncSlidersFromInputs();
+    }
+    scheduleAutoRun();
+  });
 });
 
 loadHashState();
+syncSlidersFromInputs();
 renderAll();
