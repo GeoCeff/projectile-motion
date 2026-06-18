@@ -9,7 +9,13 @@ An interactive browser-based physics lab for exploring projectile motion with an
 - Charts position, velocity, acceleration, and trajectory comparisons.
 - Shows summary metrics such as range, apex, range loss, drag velocity, and terminal speed.
 - Includes presets for common objects: baseball, tennis ball, ping pong ball, and steel ball.
+- Includes environment presets for Earth, Moon, Mars, and vacuum conditions.
+- Lets students change gravity and air density independently for each simulation.
+- Graphs projectile mechanical energy to show how drag dissipates energy.
 - Supports auto-updating graphs, manual reruns, reset, and CSV export.
+- Creates shareable links that preserve the current simulation values.
+- Includes lightweight web app manifest metadata for install/bookmark support.
+- Runs a GitHub Actions syntax check on pushes and pull requests.
 - Runs entirely in the browser with no build step.
 
 ## Live App
@@ -26,9 +32,9 @@ If GitHub Pages is enabled for this repository, the root `index.html` redirects 
 
 1. Open `mobile_app/index.html` in a browser.
 2. Choose an object preset or enter your own values.
-3. Adjust mass, radius, drag coefficient, air density, speed, launch angle, and time step.
+3. Adjust mass, radius, drag coefficient, air density, gravity, speed, launch angle, and time step.
 4. Use auto update for live recalculation, or turn it off and press the run buttons manually.
-5. Export the generated simulation table with `Export CSV`.
+5. Use `Share Link` to copy the current setup, or `Export CSV` to save the generated data table.
 
 ## Physics Model
 
@@ -40,22 +46,25 @@ The app compares two models:
 Core relationships:
 
 ```text
-g = 9.8 m/s^2
 A = pi r^2
 F_d = 0.5 C rho A v^2
+E = 0.5 m v^2 + m g y
 ```
 
-The drag force is applied opposite the direction of motion. The simulation uses a small fixed time step and numerical integration so students can see how changing parameters affects the result.
+The drag force is applied opposite the direction of motion. Gravity is adjustable, so the same launch can be compared under Earth, Moon, Mars, and vacuum-style conditions. The simulation uses a small fixed time step and numerical integration so students can see how changing parameters affects the result.
 
 ## Project Structure
 
 ```text
 .
 ├── index.html              # Root redirect for simple hosting
+├── .github/workflows/
+│   └── ci.yml              # JavaScript syntax check
 ├── mobile_app/
 │   ├── index.html          # App interface
 │   ├── style.css           # Responsive professional UI
-│   ├── app.js              # Physics simulation, charts, presets, export
+│   ├── app.js              # Physics simulation, charts, presets, share links, export
+│   ├── manifest.webmanifest # Browser install/bookmark metadata
 │   └── README.md           # App-specific notes
 ├── LICENSE                 # MIT license
 └── README.md               # Project overview
@@ -87,7 +96,7 @@ https://geoceff.github.io/projectile-motion/
 Topics:
 
 ```text
-physics, projectile-motion, simulation, chartjs, javascript, html, css, education, air-resistance
+physics, projectile-motion, simulation, chartjs, javascript, html, css, education, air-resistance, numerical-methods
 ```
 
 ## License

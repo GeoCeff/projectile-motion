@@ -1,0 +1,11 @@
+{
+  "name": "Projectile Motion Lab",
+  "short_name": "Motion Lab",
+  "description": "Compare ideal projectile motion and quadratic air resistance with live charts.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7f7f4",
+  "theme_color": "#2d70b3",
+  "categories": ["education", "utilities"],
+  "lang": "en"
+}

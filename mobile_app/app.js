@@ -1,4 +1,3 @@
-const g = 9.8;
 const maxIterations = 50000;
 
 const chartColors = {
@@ -16,6 +15,7 @@ const defaultValues = {
   radius: 0.0366,
   dragCoeff: 0.5,
   rho: 1.2,
+  gravity: 9.8,
   tMax: 5,
   dt: 0.01,
   v0: 20,
@@ -24,6 +24,7 @@ const defaultValues = {
   radius2: 0.0366,
   dragCoeff2: 0.5,
   rho2: 1.2,
+  gravity2: 9.8,
   dt2: 0.01
 };
 
@@ -32,6 +33,13 @@ const presets = {
   tennis: { mass: 0.057, radius: 0.0335, dragCoeff: 0.55, v0: 18, angle: 42 },
   pingpong: { mass: 0.0027, radius: 0.02, dragCoeff: 0.47, v0: 12, angle: 50 },
   steel: { mass: 0.5, radius: 0.025, dragCoeff: 0.47, v0: 22, angle: 40 }
+};
+
+const environments = {
+  earth: { rho: 1.2, gravity: 9.8 },
+  moon: { rho: 0, gravity: 1.62 },
+  mars: { rho: 0.02, gravity: 3.71 },
+  vacuum: { rho: 0, gravity: 9.8 }
 };
 
 const inputIds = Object.keys(defaultValues);
@@ -45,17 +53,17 @@ function getArea(radius) {
   return Math.PI * radius * radius;
 }
 
-function getTerminalVelocity({ mass, radius, dragCoeff, rho }) {
+function getTerminalVelocity({ mass, radius, dragCoeff, rho, gravity }) {
   const area = getArea(radius);
 
   if (dragCoeff <= 0 || rho <= 0 || area <= 0) {
     return Infinity;
   }
 
-  return Math.sqrt((2 * mass * g) / (dragCoeff * rho * area));
+  return Math.sqrt((2 * mass * gravity) / (dragCoeff * rho * area));
 }
 
-function simulateFall({ mass, radius, dragCoeff, rho, dt, tMax }) {
+function simulateFall({ mass, radius, dragCoeff, rho, gravity, dt, tMax }) {
   const area = getArea(radius);
   const t = [];
   const yNoDrag = [];
@@ -74,7 +82,7 @@ function simulateFall({ mass, radius, dragCoeff, rho, dt, tMax }) {
     const time = index * dt;
     t.push(time);
 
-    const a1 = -g;
+    const a1 = -gravity;
     v1 += a1 * dt;
     y1 += v1 * dt;
     yNoDrag.push(y1);
@@ -82,7 +90,7 @@ function simulateFall({ mass, radius, dragCoeff, rho, dt, tMax }) {
     aNoDrag.push(a1);
 
     const drag = (0.5 * dragCoeff * rho * area * v2 * Math.abs(v2)) / mass;
-    const a2 = -g - drag;
+    const a2 = -gravity - drag;
     v2 += a2 * dt;
     y2 += v2 * dt;
     yDrag.push(y2);
@@ -93,7 +101,7 @@ function simulateFall({ mass, radius, dragCoeff, rho, dt, tMax }) {
   return { t, yNoDrag, vNoDrag, aNoDrag, yDrag, vDrag, aDrag };
 }
 
-function simulateProjectile({ v0, angle, mass, radius, dragCoeff, rho, dt }) {
+function simulateProjectile({ v0, angle, mass, radius, dragCoeff, rho, gravity, dt }) {
   const area = getArea(radius);
   const angleRad = (angle * Math.PI) / 180;
   const xNoDrag = [];
@@ -102,6 +110,8 @@ function simulateProjectile({ v0, angle, mass, radius, dragCoeff, rho, dt }) {
   const yDrag = [];
   const tNoDrag = [];
   const tDrag = [];
+  const energyNoDrag = [];
+  const energyDrag = [];
 
   let x1 = 0;
   let y1 = 0;
@@ -116,7 +126,8 @@ function simulateProjectile({ v0, angle, mass, radius, dragCoeff, rho, dt }) {
     tNoDrag.push(index * dt);
     xNoDrag.push(x1);
     yNoDrag.push(y1);
-    vyOne -= g * dt;
+    energyNoDrag.push(0.5 * mass * (vxOne * vxOne + vyOne * vyOne) + mass * gravity * y1);
+    vyOne -= gravity * dt;
     x1 += vxOne * dt;
     y1 += vyOne * dt;
   }
@@ -126,15 +137,16 @@ function simulateProjectile({ v0, angle, mass, radius, dragCoeff, rho, dt }) {
     xDrag.push(x2);
     yDrag.push(y2);
     const speed = Math.sqrt(vxTwo * vxTwo + vyTwo * vyTwo);
+    energyDrag.push(0.5 * mass * speed * speed + mass * gravity * y2);
     const dragX = (0.5 * dragCoeff * rho * area * vxTwo * Math.abs(speed)) / mass;
     const dragY = (0.5 * dragCoeff * rho * area * vyTwo * Math.abs(speed)) / mass;
     vxTwo -= dragX * dt;
-    vyTwo += (-g - dragY) * dt;
+    vyTwo += (-gravity - dragY) * dt;
     x2 += vxTwo * dt;
     y2 += vyTwo * dt;
   }
 
-  return { xNoDrag, yNoDrag, xDrag, yDrag, tNoDrag, tDrag };
+  return { xNoDrag, yNoDrag, xDrag, yDrag, tNoDrag, tDrag, energyNoDrag, energyDrag };
 }
 
 function createChart(context, config) {
@@ -238,6 +250,7 @@ function validateInputs(values) {
     ['radius', values.radius > 0],
     ['dragCoeff', values.dragCoeff >= 0],
     ['rho', values.rho >= 0],
+    ['gravity', values.gravity > 0],
     ['tMax', values.tMax > 0],
     ['dt', values.dt > 0 && values.dt <= values.tMax],
     ['v0', values.v0 >= 0],
@@ -246,6 +259,7 @@ function validateInputs(values) {
     ['radius2', values.radius2 > 0],
     ['dragCoeff2', values.dragCoeff2 >= 0],
     ['rho2', values.rho2 >= 0],
+    ['gravity2', values.gravity2 > 0],
     ['dt2', values.dt2 > 0]
   ];
 
@@ -316,6 +330,7 @@ function renderFall(values) {
     radius: values.radius,
     dragCoeff: values.dragCoeff,
     rho: values.rho,
+    gravity: values.gravity,
     dt: values.dt,
     tMax: values.tMax
   };
@@ -365,6 +380,7 @@ function renderProjectile(values) {
     radius: values.radius2,
     dragCoeff: values.dragCoeff2,
     rho: values.rho2,
+    gravity: values.gravity2,
     dt: values.dt2
   };
   const result = simulateProjectile(payload);
@@ -391,12 +407,24 @@ function renderProjectile(values) {
     ])
   );
 
+  const energyTimes = result.tNoDrag.length >= result.tDrag.length ? result.tNoDrag : result.tDrag;
+  const energyLabels = energyTimes.map((value) => value.toFixed(2));
+  updateChart(
+    chartEnergy,
+    buildLineConfig(energyLabels, [
+      makeDataset('No Air Resistance', result.energyNoDrag, chartColors.blue, chartColors.blueFill),
+      makeDataset('With Air Resistance', result.energyDrag, chartColors.red, chartColors.redFill)
+    ], 'Mechanical Energy vs Time')
+  );
+
   lastResults.projectile = result;
 
   setMetrics('projectileMetrics', [
     { label: 'No drag range', value: `${formatNumber(rangeNoDrag)} m` },
     { label: 'Drag range', value: `${formatNumber(rangeDrag)} m` },
     { label: 'Range loss', value: `${formatNumber(percentDifference(rangeNoDrag, rangeDrag), 1)}%` },
+    { label: 'Flight time', value: `${formatNumber(lastValue(result.tDrag))} s` },
+    { label: 'No drag apex', value: `${formatNumber(apexNoDrag)} m` },
     { label: 'Drag apex', value: `${formatNumber(apexDrag)} m` }
   ]);
 }
@@ -412,7 +440,7 @@ function renderAll() {
 
   renderFall(values);
   renderProjectile(values);
-  setStatus(`Updated with ${formatNumber(values.dt, 3)} s fall steps and ${formatNumber(values.dt2, 3)} s launch steps.`);
+  setStatus(`Updated with g=${formatNumber(values.gravity, 2)} m/s^2 for fall and g=${formatNumber(values.gravity2, 2)} m/s^2 for launch.`);
 }
 
 function scheduleAutoRun() {
@@ -452,9 +480,27 @@ function applyPreset(name) {
   renderAll();
 }
 
+function applyEnvironment(name) {
+  const environment = environments[name];
+
+  setValues({
+    rho: environment.rho,
+    rho2: environment.rho,
+    gravity: environment.gravity,
+    gravity2: environment.gravity
+  });
+
+  document.querySelectorAll('[data-environment]').forEach((button) => {
+    button.classList.toggle('is-active', button.dataset.environment === name);
+  });
+
+  renderAll();
+}
+
 function resetAll() {
   setValues(defaultValues);
   document.querySelectorAll('.preset-button').forEach((button) => button.classList.remove('is-active'));
+  window.history.replaceState(null, '', window.location.pathname);
   renderAll();
 }
 
@@ -468,20 +514,20 @@ function exportCsv() {
   }
 
   const rows = [
-    ['section', 'series', 't_s', 'x_m', 'y_m', 'velocity_m_s', 'acceleration_m_s2']
+    ['section', 'series', 't_s', 'x_m', 'y_m', 'velocity_m_s', 'acceleration_m_s2', 'energy_j']
   ];
 
   lastResults.fall.t.forEach((time, index) => {
-    rows.push(['fall', 'no_drag', formatNumber(time, 4), '', formatNumber(lastResults.fall.yNoDrag[index], 4), formatNumber(lastResults.fall.vNoDrag[index], 4), formatNumber(lastResults.fall.aNoDrag[index], 4)]);
-    rows.push(['fall', 'with_drag', formatNumber(time, 4), '', formatNumber(lastResults.fall.yDrag[index], 4), formatNumber(lastResults.fall.vDrag[index], 4), formatNumber(lastResults.fall.aDrag[index], 4)]);
+    rows.push(['fall', 'no_drag', formatNumber(time, 4), '', formatNumber(lastResults.fall.yNoDrag[index], 4), formatNumber(lastResults.fall.vNoDrag[index], 4), formatNumber(lastResults.fall.aNoDrag[index], 4), '']);
+    rows.push(['fall', 'with_drag', formatNumber(time, 4), '', formatNumber(lastResults.fall.yDrag[index], 4), formatNumber(lastResults.fall.vDrag[index], 4), formatNumber(lastResults.fall.aDrag[index], 4), '']);
   });
 
   lastResults.projectile.xNoDrag.forEach((x, index) => {
-    rows.push(['projectile', 'no_drag', formatNumber(lastResults.projectile.tNoDrag[index], 4), formatNumber(x, 4), formatNumber(lastResults.projectile.yNoDrag[index], 4), '', '']);
+    rows.push(['projectile', 'no_drag', formatNumber(lastResults.projectile.tNoDrag[index], 4), formatNumber(x, 4), formatNumber(lastResults.projectile.yNoDrag[index], 4), '', '', formatNumber(lastResults.projectile.energyNoDrag[index], 4)]);
   });
 
   lastResults.projectile.xDrag.forEach((x, index) => {
-    rows.push(['projectile', 'with_drag', formatNumber(lastResults.projectile.tDrag[index], 4), formatNumber(x, 4), formatNumber(lastResults.projectile.yDrag[index], 4), '', '']);
+    rows.push(['projectile', 'with_drag', formatNumber(lastResults.projectile.tDrag[index], 4), formatNumber(x, 4), formatNumber(lastResults.projectile.yDrag[index], 4), '', '', formatNumber(lastResults.projectile.energyDrag[index], 4)]);
   });
 
   const blob = new Blob([rowsToCsv(rows)], { type: 'text/csv;charset=utf-8' });
@@ -494,12 +540,57 @@ function exportCsv() {
   setStatus('CSV exported with fall and projectile data.');
 }
 
+function buildShareUrl() {
+  const url = new URL(window.location.href);
+  const values = readInputs();
+  url.hash = new URLSearchParams(
+    Object.entries(values).map(([key, value]) => [key, String(value)])
+  ).toString();
+  return url.toString();
+}
+
+async function copyShareLink() {
+  const shareUrl = buildShareUrl();
+
+  try {
+    await navigator.clipboard.writeText(shareUrl);
+    setStatus('Share link copied with the current simulation values.');
+  } catch (error) {
+    window.prompt('Copy this share link:', shareUrl);
+    setStatus('Copy the share link from the prompt.');
+  }
+}
+
+function loadHashState() {
+  if (!window.location.hash) {
+    return;
+  }
+
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  const values = {};
+
+  inputIds.forEach((id) => {
+    if (params.has(id)) {
+      const value = parseFloat(params.get(id));
+      if (Number.isFinite(value)) {
+        values[id] = value;
+      }
+    }
+  });
+
+  setValues(values);
+}
+
 const chartY = createChart(document.getElementById('chartY').getContext('2d'), buildLineConfig([], [], ''));
 const chartV = createChart(document.getElementById('chartV').getContext('2d'), buildLineConfig([], [], ''));
 const chartA = createChart(document.getElementById('chartA').getContext('2d'), buildLineConfig([], [], ''));
 const chartXY = createChart(
   document.getElementById('chartXY').getContext('2d'),
   buildTrajectoryConfig([])
+);
+const chartEnergy = createChart(
+  document.getElementById('chartEnergy').getContext('2d'),
+  buildLineConfig([], [], '')
 );
 
 document.getElementById('runFall').addEventListener('click', () => {
@@ -528,14 +619,22 @@ document.getElementById('runProjectile').addEventListener('click', () => {
 
 document.getElementById('resetAll').addEventListener('click', resetAll);
 document.getElementById('exportCsv').addEventListener('click', exportCsv);
+document.getElementById('copyShareLink').addEventListener('click', copyShareLink);
 document.getElementById('autoRun').addEventListener('change', scheduleAutoRun);
 
 document.querySelectorAll('.preset-button').forEach((button) => {
-  button.addEventListener('click', () => applyPreset(button.dataset.preset));
+  if (button.dataset.preset) {
+    button.addEventListener('click', () => applyPreset(button.dataset.preset));
+  }
+});
+
+document.querySelectorAll('[data-environment]').forEach((button) => {
+  button.addEventListener('click', () => applyEnvironment(button.dataset.environment));
 });
 
 inputIds.forEach((id) => {
   getInput(id).addEventListener('input', scheduleAutoRun);
 });
 
+loadHashState();
 renderAll();

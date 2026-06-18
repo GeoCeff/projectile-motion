@@ -7,10 +7,12 @@
     name="description"
     content="Interactive projectile motion simulator comparing ideal motion and quadratic air resistance."
   />
+  <meta name="theme-color" content="#2d70b3" />
   <title>Projectile Motion Lab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -26,6 +28,7 @@
         <input id="autoRun" type="checkbox" checked />
         <span>Auto update</span>
       </label>
+      <button id="copyShareLink" class="secondary-button" type="button">Share Link</button>
       <button id="resetAll" class="secondary-button" type="button">Reset</button>
       <button id="exportCsv" type="button">Export CSV</button>
     </div>
@@ -48,6 +51,17 @@
           <button class="preset-button" type="button" data-preset="pingpong">Ping Pong</button>
           <button class="preset-button" type="button" data-preset="steel">Steel Ball</button>
         </div>
+
+        <div class="mini-heading">
+          <h3>Environment</h3>
+          <p>Change gravity and air density for different worlds.</p>
+        </div>
+        <div class="preset-grid" aria-label="Environment presets">
+          <button class="preset-button" type="button" data-environment="earth">Earth</button>
+          <button class="preset-button" type="button" data-environment="moon">Moon</button>
+          <button class="preset-button" type="button" data-environment="mars">Mars</button>
+          <button class="preset-button" type="button" data-environment="vacuum">Vacuum</button>
+        </div>
       </section>
 
       <section class="control-section">
@@ -64,6 +78,7 @@
           <label>Radius <span>m</span><input id="radius" type="number" value="0.0366" step="0.0001" min="0.001" /></label>
           <label>Drag coefficient <span>C</span><input id="dragCoeff" type="number" value="0.5" step="0.01" min="0" /></label>
           <label>Air density <span>kg/m^3</span><input id="rho" type="number" value="1.2" step="0.1" min="0" /></label>
+          <label>Gravity <span>m/s^2</span><input id="gravity" type="number" value="9.8" step="0.1" min="0.01" /></label>
           <label>Time max <span>s</span><input id="tMax" type="number" value="5" step="0.5" min="0.5" /></label>
           <label>Time step <span>s</span><input id="dt" type="number" value="0.01" step="0.005" min="0.001" /></label>
         </div>
@@ -88,6 +103,7 @@
           <label>Radius <span>m</span><input id="radius2" type="number" value="0.0366" step="0.0001" min="0.001" /></label>
           <label>Drag coefficient <span>C</span><input id="dragCoeff2" type="number" value="0.5" step="0.01" min="0" /></label>
           <label>Air density <span>kg/m^3</span><input id="rho2" type="number" value="1.2" step="0.1" min="0" /></label>
+          <label>Gravity <span>m/s^2</span><input id="gravity2" type="number" value="9.8" step="0.1" min="0.01" /></label>
           <label>Time step <span>s</span><input id="dt2" type="number" value="0.01" step="0.005" min="0.001" /></label>
         </div>
 
@@ -114,7 +130,11 @@
           </div>
           <div>
             <dt>Gravity</dt>
-            <dd>g = 9.8 m/s^2 downward</dd>
+            <dd>g is adjustable for each simulation</dd>
+          </div>
+          <div>
+            <dt>Energy</dt>
+            <dd>E = 0.5 m v^2 + m g y</dd>
           </div>
         </dl>
       </section>
@@ -154,6 +174,14 @@
             <span>x-y plane</span>
           </div>
           <canvas id="chartXY"></canvas>
+        </article>
+
+        <article class="graph-card graph-card-wide">
+          <div class="graph-title">
+            <h3>Mechanical Energy vs Time</h3>
+            <span>K + U</span>
+          </div>
+          <canvas id="chartEnergy"></canvas>
         </article>
       </div>
     </section>
