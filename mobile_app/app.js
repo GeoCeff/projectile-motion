@@ -44,10 +44,22 @@ const environments = {
 
 const inputIds = Object.keys(defaultValues);
 const lastResults = { fall: null, projectile: null };
+const chartsByCanvasId = {};
 let autoRunTimer = null;
 
 Chart.defaults.font.family = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 Chart.defaults.color = chartColors.muted;
+Chart.register({
+  id: 'canvasBackground',
+  beforeDraw(chart) {
+    const { ctx, width, height } = chart;
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+  }
+});
 
 function getArea(radius) {
   return Math.PI * radius * radius;
@@ -324,6 +336,10 @@ function updateChart(chart, config) {
   chart.update();
 }
 
+function slugify(text) {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
 function renderFall(values) {
   const payload = {
     mass: values.mass,
@@ -551,6 +567,7 @@ function buildShareUrl() {
 
 async function copyShareLink() {
   const shareUrl = buildShareUrl();
+  window.history.replaceState(null, '', shareUrl);
 
   try {
     await navigator.clipboard.writeText(shareUrl);
@@ -559,6 +576,35 @@ async function copyShareLink() {
     window.prompt('Copy this share link:', shareUrl);
     setStatus('Copy the share link from the prompt.');
   }
+}
+
+function downloadChart(canvasId) {
+  const chart = chartsByCanvasId[canvasId];
+
+  if (!chart) {
+    setStatus('Chart is not ready yet.', 'warning');
+    return;
+  }
+
+  const title = chart.options.plugins.title.text || canvasId;
+  chart.canvas.toBlob((blob) => {
+    if (!blob) {
+      setStatus('Could not export this chart image.', 'error');
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${slugify(title)}.png`;
+    document.body.appendChild(link);
+    link.click();
+    window.setTimeout(() => {
+      URL.revokeObjectURL(url);
+      link.remove();
+    }, 1000);
+    setStatus(`${title} exported as a PNG image.`);
+  }, 'image/png');
 }
 
 function loadHashState() {
@@ -592,6 +638,14 @@ const chartEnergy = createChart(
   document.getElementById('chartEnergy').getContext('2d'),
   buildLineConfig([], [], '')
 );
+
+Object.assign(chartsByCanvasId, {
+  chartY,
+  chartV,
+  chartA,
+  chartXY,
+  chartEnergy
+});
 
 document.getElementById('runFall').addEventListener('click', () => {
   const values = readInputs();
@@ -630,6 +684,10 @@ document.querySelectorAll('.preset-button').forEach((button) => {
 
 document.querySelectorAll('[data-environment]').forEach((button) => {
   button.addEventListener('click', () => applyEnvironment(button.dataset.environment));
+});
+
+document.querySelectorAll('[data-chart]').forEach((button) => {
+  button.addEventListener('click', () => downloadChart(button.dataset.chart));
 });
 
 inputIds.forEach((id) => {

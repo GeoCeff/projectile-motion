@@ -1,18 +1,17 @@
 # Projectile Motion Lab
 
-An interactive browser-based physics lab for exploring projectile motion with and without air resistance. The app turns the Activity 4.3 projectile motion model into a polished graphing-calculator style experience with live charts, presets, validation, and exportable data.
+An interactive browser-based physics lab for exploring projectile motion with and without air resistance. The app turns the Activity 4.3 projectile motion model into a polished graphing-calculator style experience with live charts, presets, validation, share links, image exports, and CSV data.
 
 ## What It Does
 
 - Simulates vertical fall with and without quadratic drag.
 - Simulates 2D projectile launch with and without air resistance.
-- Charts position, velocity, acceleration, and trajectory comparisons.
-- Shows summary metrics such as range, apex, range loss, drag velocity, and terminal speed.
+- Charts position, velocity, acceleration, trajectory, and mechanical energy.
+- Shows summary metrics such as range, apex, range loss, flight time, drag velocity, and terminal speed.
 - Includes presets for common objects: baseball, tennis ball, ping pong ball, and steel ball.
 - Includes environment presets for Earth, Moon, Mars, and vacuum conditions.
 - Lets students change gravity and air density independently for each simulation.
-- Graphs projectile mechanical energy to show how drag dissipates energy.
-- Supports auto-updating graphs, manual reruns, reset, and CSV export.
+- Supports auto-updating graphs, manual reruns, reset, CSV export, and per-chart PNG downloads.
 - Creates shareable links that preserve the current simulation values.
 - Includes lightweight web app manifest metadata for install/bookmark support.
 - Runs a GitHub Actions syntax check on pushes and pull requests.
@@ -20,21 +19,25 @@ An interactive browser-based physics lab for exploring projectile motion with an
 
 ## Live App
 
-Open the app locally from:
+Use the live GitHub Pages app:
+
+```text
+https://geoceff.github.io/projectile-motion/
+```
+
+Or open the app locally from:
 
 ```text
 mobile_app/index.html
 ```
 
-If GitHub Pages is enabled for this repository, the root `index.html` redirects to the app automatically.
-
 ## How To Use
 
-1. Open `mobile_app/index.html` in a browser.
+1. Open the live app or `mobile_app/index.html`.
 2. Choose an object preset or enter your own values.
 3. Adjust mass, radius, drag coefficient, air density, gravity, speed, launch angle, and time step.
 4. Use auto update for live recalculation, or turn it off and press the run buttons manually.
-5. Use `Share Link` to copy the current setup, or `Export CSV` to save the generated data table.
+5. Use `Share Link` to copy the current setup, `Export CSV` to save generated data, or `PNG` to download individual charts.
 
 ## Physics Model
 
@@ -57,17 +60,17 @@ The drag force is applied opposite the direction of motion. Gravity is adjustabl
 
 ```text
 .
-├── index.html              # Root redirect for simple hosting
-├── .github/workflows/
-│   └── ci.yml              # JavaScript syntax check
-├── mobile_app/
-│   ├── index.html          # App interface
-│   ├── style.css           # Responsive professional UI
-│   ├── app.js              # Physics simulation, charts, presets, share links, export
-│   ├── manifest.webmanifest # Browser install/bookmark metadata
-│   └── README.md           # App-specific notes
-├── LICENSE                 # MIT license
-└── README.md               # Project overview
+|-- index.html               # Root redirect for simple hosting
+|-- .github/workflows/
+|   `-- ci.yml               # JavaScript syntax check
+|-- mobile_app/
+|   |-- index.html           # App interface
+|   |-- style.css            # Responsive professional UI
+|   |-- app.js               # Physics simulation, charts, presets, share links, export
+|   |-- manifest.webmanifest # Browser install/bookmark metadata
+|   `-- README.md            # App-specific notes
+|-- LICENSE                  # MIT license
+`-- README.md                # Project overview
 ```
 
 ## Tech Stack
@@ -79,7 +82,7 @@ The drag force is applied opposite the direction of motion. Gravity is adjustabl
 
 No package installation is required.
 
-## Suggested Repository About Fields
+## Repository About Fields
 
 Description:
 

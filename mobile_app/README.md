@@ -22,6 +22,7 @@ This folder contains the static Projectile Motion Lab web app.
 - Shareable links that encode the current simulation values in the URL hash.
 - Mechanical energy chart for comparing ideal conservation against drag losses.
 - CSV export for further analysis in spreadsheets.
+- Per-chart PNG export for reports, slides, and lab writeups.
 
 ## Local Use
 
